@@ -6,6 +6,7 @@ package fs
 
 import (
 	"context"
+	"log"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -385,6 +386,12 @@ func (n *loopbackNode) Setattr(ctx context.Context, f FileHandle, in *fuse.SetAt
 		out.FromStat(&st)
 	}
 	return OK
+}
+
+func (n *loopbackNode) Read(ctx context.Context, f FileHandle, dest []byte, off int64) (fuse.ReadResult, syscall.Errno) {
+	newF := f.(FileReader)
+	log.Printf("***********\n")
+	return newF.Read(ctx, dest, off)
 }
 
 // NewLoopbackRoot returns a root node for a loopback file system whose

@@ -6,6 +6,7 @@ package fs
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	//	"time"
@@ -45,13 +46,24 @@ func (f *loopbackFile) Read(ctx context.Context, buf []byte, off int64) (res fus
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	r := fuse.ReadResultFd(uintptr(f.fd), off, len(buf))
+
+	tmp, status := r.Bytes(buf)
+	log.Printf("read buf: %+v, status: %+v\n", tmp, status)
+	xorEnc(tmp)
+	r = fuse.ReadResultData(tmp)
+
 	return r, OK
 }
 
 func (f *loopbackFile) Write(ctx context.Context, data []byte, off int64) (uint32, syscall.Errno) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
+
+	log.Printf("write buf: %+v\n", data)
+	xorEnc(data)
+
 	n, err := syscall.Pwrite(f.fd, data, off)
+
 	return uint32(n), ToErrno(err)
 }
 
